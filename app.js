@@ -62,6 +62,7 @@ const authenticateToken = (req, res, next) => {
   } else {
     jwt.verify(jwtToken, "MY_SECRET_TOKEN", async (error, payload) => {
       if (error) {
+        res.status(401);
         res.send("Invalid JWT Token");
       } else {
         next();
@@ -70,12 +71,29 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+const stateFromSnakeToCamel = (dataObj) => ({
+  stateId: dataObj.state_id,
+  stateName: dataObj.state_name,
+  population: dataObj.population,
+});
+
+const districtFromSnakeToCamel = (dataObj) => ({
+  districtId: dataObj.district_id,
+  districtName: dataObj.district_name,
+  stateId: dataObj.state_id,
+  cases: dataObj.cases,
+  curved: dataObj.cured,
+  active: dataObj.active,
+  deaths: dataObj.deaths,
+});
+
 app.get("/states/", authenticateToken, async (req, res) => {
   const getQuery = `
                 SELECT * FROM STATE ORDER BY STATE_ID
                 `;
   const statesArray = await db.all(getQuery);
-  res.send(statesArray);
+  const result = statesArray.map((x) => stateFromSnakeToCamel(x));
+  res.send(result);
 });
 
 app.get("/states/:stateId", authenticateToken, async (req, res) => {
@@ -84,7 +102,7 @@ app.get("/states/:stateId", authenticateToken, async (req, res) => {
         SELECT *  FROM STATE WHERE STATE_ID=${stateId}
     `;
   const state = await db.get(getQuery);
-  res.send(state);
+  res.send(stateFromSnakeToCamel(state));
 });
 
 app.post("/districts/", authenticateToken, async (req, res) => {
@@ -100,10 +118,11 @@ app.post("/districts/", authenticateToken, async (req, res) => {
 app.get("/districts/:districtId", authenticateToken, async (req, res) => {
   const { districtId } = req.params;
   const getQuery = `
-        SELECT *  FROM DISTRICT WHERE DISTRICT_ID=${districtId}
+        SELECT *  FROM DISTRICT WHERE district_id=${districtId}
     `;
   const district = await db.get(getQuery);
-  res.send(district);
+  console.log(district);
+  res.send(districtFromSnakeToCamel(district));
 });
 
 app.delete("/districts/:districtId", authenticateToken, async (req, res) => {
