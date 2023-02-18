@@ -82,7 +82,7 @@ const districtFromSnakeToCamel = (dataObj) => ({
   districtName: dataObj.district_name,
   stateId: dataObj.state_id,
   cases: dataObj.cases,
-  curved: dataObj.cured,
+  cured: dataObj.cured,
   active: dataObj.active,
   deaths: dataObj.deaths,
 });
@@ -143,7 +143,7 @@ app.put("/districts/:districtId", authenticateToken, async (req, res) => {
     state_id= ${stateId},
     cases=${cases},
     active=${active},
-    deaths=${deaths} where district_id=${districtId}
+    deaths=${deaths}, cured=${cured} where district_id=${districtId}
     `;
   await db.run(putQuery);
   res.send("District Details Updated");
